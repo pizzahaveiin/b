@@ -221,6 +221,32 @@ const THEME_PRESETS = [
   }
 ];
 
+function getActiveThemeColors() {
+  const savedThemeId = localStorage.getItem('ppp_pos_theme_id') || 'sunset-tomato';
+  const theme = THEME_PRESETS.find(t => t.id === savedThemeId) || THEME_PRESETS[0];
+  
+  let hex = theme.primary;
+  if (hex.startsWith('#')) hex = hex.slice(1);
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+  }
+  
+  return {
+    primary: theme.primary,
+    gradient: theme.gradient,
+    glow: theme.glow,
+    rgb: `${r}, ${g}, ${b}`,
+    rgba: (alpha) => `rgba(${r}, ${g}, ${b}, ${alpha})`
+  };
+}
+
 function applyTheme(themeId) {
   const theme = THEME_PRESETS.find(t => t.id === themeId) || THEME_PRESETS[0];
   const root = document.documentElement;
@@ -231,7 +257,16 @@ function applyTheme(themeId) {
   root.style.setProperty('--brand-glow', theme.glow);
   
   localStorage.setItem('ppp_pos_theme_id', theme.id);
+  
+  const colors = getActiveThemeColors();
+  root.style.setProperty('--brand-primary-rgb', colors.rgb);
+  
   updateAdminThemeUI(theme.id);
+  
+  const dbSection = document.getElementById('sectionDashboard');
+  if (dbSection && dbSection.classList.contains('active')) {
+    renderAllDashboardComponents();
+  }
 }
 
 function renderAdminThemePresets() {
@@ -275,6 +310,10 @@ function updateAdminThemeUI(activeThemeId) {
   root.style.setProperty('--brand-gradient', theme.gradient);
   root.style.setProperty('--brand-gradient-hover', theme.gradientHover);
   root.style.setProperty('--brand-glow', theme.glow);
+  
+  // Set rgb variable on startup
+  const colors = getActiveThemeColors();
+  root.style.setProperty('--brand-primary-rgb', colors.rgb);
 })();
 
 async function saveAdminCreds() {
@@ -2630,18 +2669,19 @@ function renderRevenueTrendChart(entries) {
       datasets: [{
         label: 'Revenue',
         data,
-        borderColor: '#e85d04',
+        borderColor: getActiveThemeColors().primary,
         borderWidth: 2.5,
         pointRadius: 3,
-        pointBackgroundColor: '#e85d04',
+        pointBackgroundColor: getActiveThemeColors().primary,
         fill: true,
         backgroundColor: (context) => {
           const chart = context.chart;
           const { ctx: chartCtx, chartArea } = chart;
           if (!chartArea) return null;
           const gradient = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, 'rgba(232, 93, 4, 0.25)');
-          gradient.addColorStop(1, 'rgba(232, 93, 4, 0)');
+          const colors = getActiveThemeColors();
+          gradient.addColorStop(0, colors.rgba(0.25));
+          gradient.addColorStop(1, colors.rgba(0));
           return gradient;
         },
         tension: 0.4
@@ -2779,14 +2819,14 @@ function renderPaymentBreakdownChart(entries) {
         {
           label: 'Card',
           data: cardData,
-          borderColor: '#FF4B2B',
-          backgroundColor: 'rgba(255, 75, 43, 0.25)',
+          borderColor: getActiveThemeColors().primary,
+          backgroundColor: getActiveThemeColors().rgba(0.25),
           fill: true,
           tension: 0.4,
           borderWidth: 2,
           pointRadius: 0,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#FF4B2B',
+          pointBackgroundColor: getActiveThemeColors().primary,
           pointBorderColor: '#fff',
           pointBorderWidth: 2
         }
@@ -2952,7 +2992,7 @@ function renderPaymentDonut(entries) {
       labels: ['Cash', 'UPI', 'Card'],
       datasets: [{
         data: [cash, upi, card],
-        backgroundColor: ['#10B981', '#6366F1', '#FF4B2B'],
+        backgroundColor: ['#10B981', '#6366F1', getActiveThemeColors().primary],
         borderWidth: 0,
         borderRadius: 4
       }]
@@ -3163,7 +3203,7 @@ function renderCustomerBase(entries) {
       labels: ['Regulars (2+)', 'One-timers (1)'],
       datasets: [{
         data: [regulars, oneTimers],
-        backgroundColor: ['#e85d04', '#d1d5db'],
+        backgroundColor: [getActiveThemeColors().primary, '#d1d5db'],
         borderWidth: 0,
         borderRadius: 4
       }]
@@ -3583,19 +3623,21 @@ function calculateTimeBetweenVisits() {
         backgroundColor: (context) => {
           const chart = context.chart;
           const { ctx: chartCtx, chartArea } = chart;
-          if (!chartArea) return 'rgba(232, 93, 4, 0.7)';
+          const colors = getActiveThemeColors();
+          if (!chartArea) return colors.rgba(0.7);
           const gradient = chartCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, 'rgba(232, 93, 4, 0.4)');
-          gradient.addColorStop(1, 'rgba(255, 75, 43, 0.85)');
+          gradient.addColorStop(0, colors.rgba(0.4));
+          gradient.addColorStop(1, colors.rgba(0.85));
           return gradient;
         },
         hoverBackgroundColor: (context) => {
           const chart = context.chart;
           const { ctx: chartCtx, chartArea } = chart;
-          if (!chartArea) return 'rgba(232, 93, 4, 0.9)';
+          const colors = getActiveThemeColors();
+          if (!chartArea) return colors.rgba(0.9);
           const gradient = chartCtx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, 'rgba(232, 93, 4, 0.7)');
-          gradient.addColorStop(1, 'rgba(255, 75, 43, 1)');
+          gradient.addColorStop(0, colors.rgba(0.7));
+          gradient.addColorStop(1, colors.rgba(1));
           return gradient;
         },
         borderRadius: 8,
@@ -4646,7 +4688,7 @@ function renderPosMenuGrid() {
     div.style.margin = '2rem 0 1rem';
     div.style.textAlign = 'left';
     div.style.width = '100%';
-    div.textContent = '🎁 Combo Packages';
+    div.textContent = 'Combos';
     grid.appendChild(div);
 
     POS_STATE.combos.forEach(combo => {
@@ -4656,15 +4698,10 @@ function renderPosMenuGrid() {
       card.onclick = () => startComboResolution(combo.id);
       
       card.innerHTML = `
-        <div class="table-card-header">
-          <span class="table-badge active" style="font-size:0.75rem; padding: 0.15rem 0.4rem;">Combo</span>
-        </div>
+        <div class="table-card-header"></div>
         <div class="dish-card-body" style="display:flex; flex-direction:column; justify-content:center; height:100%; min-height:85px;">
-          <div class="pos-dish-info">
-            <div class="pos-dish-name" style="font-weight:700;">${combo.name}</div>
-            <div class="pos-dish-price" style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">
-              Configure Deal ➔
-            </div>
+          <div class="pos-dish-info" style="margin-bottom: 0;">
+            <div class="pos-dish-name" style="font-weight:700; margin-bottom: 0;">${combo.name}</div>
           </div>
         </div>
       `;
@@ -6868,15 +6905,27 @@ function startComboResolution(comboId) {
   
   activeComboName = combo.name;
   comboResolutionQueue = [];
+  comboResolvedDishes = [];
   
   combo.nodes.forEach(item => {
     // Handle fallback if database saved with old raw index array [2, 4]
     const index = (item && typeof item === 'object') ? item.index : Number(item);
     const qty = (item && typeof item === 'object') ? (Number(item.qty) || 1) : 1;
-    comboResolutionQueue.push({ nodeIndex: index, requiredQty: qty });
+    
+    const node = POS_STATE.menuTree.find(n => Number(n.index) === Number(index));
+    if (!node) return;
+    
+    const hasChildren = POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(node.index));
+    if (!hasChildren) {
+      // Leaf node: auto-resolve immediately!
+      for (let i = 0; i < qty; i++) {
+        comboResolvedDishes.push(node);
+      }
+    } else {
+      // Parent node: push to wizard queue
+      comboResolutionQueue.push({ nodeIndex: index, requiredQty: qty });
+    }
   });
-  
-  comboResolvedDishes = [];
   
   processNextComboItem();
 }
@@ -6913,183 +6962,169 @@ function processNextComboItem() {
     return;
   }
   
-  // Check if it's a leaf node (dish) or parent (category)
-  const hasChildren = POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(node.index));
-  
-  if (!hasChildren) {
-    // Leaf node: add directly (repeated by requiredQty) and move on
-    for (let i = 0; i < step.requiredQty; i++) {
-      comboResolvedDishes.push(node);
-    }
-    comboResolutionQueue.shift();
-    processNextComboItem();
-    return;
-  }
-  
   // Parent node: open resolution choices popup
-  const children = POS_STATE.menuTree.filter(n => Number(n.parentIndex) === Number(node.index)).sort((a, b) => a.index - b.index);
-  if (children.length === 0) {
+  const descendants = getDescendantNodeIds(node.index, POS_STATE.menuTree);
+  const descendantNodes = descendants.map(idx => POS_STATE.menuTree.find(n => Number(n.index) === Number(idx))).filter(Boolean);
+  
+  // Find all leaf nodes among descendants
+  const leafNodes = descendantNodes.filter(d => !POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(d.index)));
+  
+  if (leafNodes.length === 0) {
     comboResolutionQueue.shift();
     processNextComboItem();
     return;
   }
-  
-  // Check if all children are leaf dishes
-  const allChildrenAreLeaves = children.every(child => !POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(child.index)));
   
   document.getElementById('comboResolverTitle').textContent = activeComboName;
+  document.getElementById('comboResolverPrompt').textContent = `Choose ${step.requiredQty} items from "${node.name}":`;
   
   const grid = document.getElementById('comboResolverOptionsGrid');
   grid.innerHTML = '';
   
-  if (allChildrenAreLeaves && step.requiredQty > 1) {
-    // Case A: Show multi-quantity selector and Confirm Selection button!
-    document.getElementById('comboResolverPrompt').textContent = `Choose ${step.requiredQty} items from "${node.name}":`;
+  // Track selected quantities locally for all leaf dishes
+  const selectionMap = {};
+  leafNodes.forEach(leaf => selectionMap[leaf.index] = 0);
+  
+  const getSumSelected = () => Object.values(selectionMap).reduce((sum, v) => sum + v, 0);
+  
+  if (footer) {
+    footer.style.display = 'block';
+    const confirmBtn = document.getElementById('btnConfirmComboResolver');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = `Confirm Selection (0/${step.requiredQty})`;
     
-    // Track selected quantities locally
-    const selectionMap = {};
-    children.forEach(child => { selectionMap[child.index] = 0; });
-    
-    if (footer) {
-      footer.style.display = 'block';
-      const confirmBtn = document.getElementById('btnConfirmComboResolver');
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = `Confirm Selection (0/${step.requiredQty})`;
+    confirmBtn.onclick = () => {
+      const totalConfirmed = getSumSelected();
+      leafNodes.forEach(leaf => {
+        const qty = selectionMap[leaf.index];
+        for (let i = 0; i < qty; i++) {
+          comboResolvedDishes.push(leaf);
+        }
+      });
       
-      confirmBtn.onclick = () => {
-        children.forEach(child => {
-          const qty = selectionMap[child.index];
-          for (let i = 0; i < qty; i++) {
-            comboResolvedDishes.push(child);
-          }
-        });
+      step.requiredQty -= totalConfirmed;
+      if (step.requiredQty <= 0) {
         comboResolutionQueue.shift();
-        processNextComboItem();
-      };
-    }
+      }
+      processNextComboItem();
+    };
+  }
+  
+  function renderAccordionTree(container, parentId, depth) {
+    const children = POS_STATE.menuTree.filter(n => Number(n.parentIndex) === Number(parentId)).sort((a, b) => a.index - b.index);
     
     children.forEach(child => {
-      const itemRow = document.createElement('div');
-      itemRow.className = 'pos-search-dropdown-item';
-      itemRow.style.padding = '0.75rem 1rem';
-      itemRow.style.border = '1px solid var(--border-input)';
-      itemRow.style.borderRadius = '12px';
-      itemRow.style.background = 'var(--bg-card)';
-      itemRow.style.marginBottom = '0.5rem';
-      itemRow.style.display = 'flex';
-      itemRow.style.justifyContent = 'space-between';
-      itemRow.style.alignItems = 'center';
+      const isParent = POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(child.index));
       
-      itemRow.innerHTML = `
-        <div class="item-details" style="flex:1;">
-          <div class="item-name" style="font-weight:600; color:var(--text-primary);">🍽️ ${child.name}</div>
-          <div class="item-price" style="font-weight:700; color:var(--brand-primary); margin-top:0.25rem;">₹${child.price}</div>
-        </div>
-        <div class="qty-selector" style="display:flex; align-items:center; gap:0.5rem;">
-          <button class="qty-btn dec-btn" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-input); background:var(--bg-card); cursor:pointer;">-</button>
-          <div class="qty-display" style="font-weight:700; min-width:20px; text-align:center;">0</div>
-          <button class="qty-btn inc-btn" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-input); background:var(--bg-card); cursor:pointer;">+</button>
-        </div>
-      `;
+      const wrapper = document.createElement('div');
+      wrapper.style.marginLeft = depth === 0 ? '0' : '1rem';
+      wrapper.style.marginTop = '0.5rem';
       
-      const decrementBtn = itemRow.querySelector('.dec-btn');
-      const incrementBtn = itemRow.querySelector('.inc-btn');
-      const display = itemRow.querySelector('.qty-display');
-      
-      const getSumSelected = () => Object.values(selectionMap).reduce((sum, v) => sum + v, 0);
-      
-      const updateUI = () => {
-        const sum = getSumSelected();
-        const confirmBtn = document.getElementById('btnConfirmComboResolver');
-        if (confirmBtn) {
-          confirmBtn.textContent = `Confirm Selection (${sum}/${step.requiredQty})`;
-          confirmBtn.disabled = (sum !== step.requiredQty);
-        }
-      };
-      
-      decrementBtn.onclick = () => {
-        if (selectionMap[child.index] > 0) {
-          selectionMap[child.index]--;
-          display.textContent = selectionMap[child.index];
-          updateUI();
-        }
-      };
-      
-      incrementBtn.onclick = () => {
-        const sum = getSumSelected();
-        if (sum < step.requiredQty) {
-          selectionMap[child.index]++;
-          display.textContent = selectionMap[child.index];
-          updateUI();
-        }
-      };
-      
-      grid.appendChild(itemRow);
-    });
-  } else {
-    // Case B: Simple direct choice, loops until requiredQty is 0
-    document.getElementById('comboResolverPrompt').textContent = `Choose an option for "${node.name}"${step.requiredQty > 1 ? ` (Remaining: ${step.requiredQty})` : ''}:`;
-    
-    children.forEach(child => {
-      const isChildParent = POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(child.index));
-      const btn = document.createElement('button');
-      btn.className = 'btn btn--outline btn--block';
-      btn.style.padding = '0.85rem 1.25rem';
-      btn.style.fontSize = '0.95rem';
-      btn.style.textAlign = 'left';
-      btn.style.display = 'flex';
-      btn.style.justifyContent = 'space-between';
-      btn.style.alignItems = 'center';
-      btn.style.border = '1px solid var(--border-input)';
-      btn.style.borderRadius = '12px';
-      btn.style.background = 'var(--bg-card)';
-      btn.style.color = 'var(--text-primary)';
-      btn.style.cursor = 'pointer';
-      btn.style.transition = 'background-color 0.2s';
-      btn.style.marginBottom = '0.5rem';
-      
-      btn.onmouseover = () => { btn.style.background = 'var(--bg-hover)'; };
-      btn.onmouseout = () => { btn.style.background = 'var(--bg-card)'; };
-      
-      const childSymbol = isChildParent ? '📁' : '🍽️';
-      const trailingLabel = isChildParent ? '<span style="color:var(--brand-primary); font-size: 0.95rem;">➔</span>' : `<span style="font-weight: 700; color: var(--brand-primary);">₹${child.price}</span>`;
-      
-      btn.innerHTML = `<span>${childSymbol} ${child.name}</span> ${trailingLabel}`;
-      btn.onclick = () => resolveComboOption(child.index);
-      grid.appendChild(btn);
+      if (isParent) {
+        const childDescendants = getDescendantNodeIds(child.index, POS_STATE.menuTree);
+        const hasLeaf = childDescendants.some(dIdx => {
+           const dNode = POS_STATE.menuTree.find(n => Number(n.index) === Number(dIdx));
+           return dNode && !POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(dIdx));
+        });
+        if (!hasLeaf) return; // Skip empty folders
+        
+        const header = document.createElement('div');
+        header.style.display = 'flex';
+        header.style.alignItems = 'center';
+        header.style.padding = '0.75rem 1rem';
+        header.style.background = 'var(--bg-card)';
+        header.style.border = '1px solid var(--border-input)';
+        header.style.borderRadius = '8px';
+        header.style.cursor = 'pointer';
+        header.style.fontWeight = '700';
+        header.style.userSelect = 'none';
+        header.innerHTML = `<span>📁 ${child.name}</span><span style="margin-left:auto; font-size:0.8rem;">▼</span>`;
+        
+        const childrenContainer = document.createElement('div');
+        childrenContainer.style.display = depth === 0 ? 'block' : 'none';
+        childrenContainer.style.paddingLeft = '0.5rem';
+        childrenContainer.style.borderLeft = '2px solid var(--border-input)';
+        childrenContainer.style.marginLeft = '0.5rem';
+        childrenContainer.style.marginTop = '0.5rem';
+        
+        header.onclick = () => {
+          if (childrenContainer.style.display === 'none') {
+            childrenContainer.style.display = 'block';
+            header.querySelector('span:last-child').textContent = '▲';
+          } else {
+            childrenContainer.style.display = 'none';
+            header.querySelector('span:last-child').textContent = '▼';
+          }
+        };
+        
+        wrapper.appendChild(header);
+        wrapper.appendChild(childrenContainer);
+        container.appendChild(wrapper);
+        
+        renderAccordionTree(childrenContainer, child.index, depth + 1);
+      } else {
+        const itemRow = document.createElement('div');
+        itemRow.className = 'pos-search-dropdown-item';
+        itemRow.style.padding = '0.75rem 1rem';
+        itemRow.style.border = '1px solid var(--border-input)';
+        itemRow.style.borderRadius = '8px';
+        itemRow.style.background = 'var(--bg-card)';
+        itemRow.style.display = 'flex';
+        itemRow.style.justifyContent = 'space-between';
+        itemRow.style.alignItems = 'center';
+        
+        itemRow.innerHTML = `
+          <div class="item-details" style="flex:1;">
+            <div class="item-name" style="font-weight:600; color:var(--text-primary);">🍽️ ${child.name}</div>
+            <div class="item-price" style="font-weight:700; color:var(--brand-primary); margin-top:0.25rem;">₹${child.price}</div>
+          </div>
+          <div class="qty-selector" style="display:flex; align-items:center; gap:0.5rem;">
+            <button class="qty-btn dec-btn" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-input); background:var(--bg-card); cursor:pointer;">-</button>
+            <div class="qty-display" style="font-weight:700; min-width:20px; text-align:center;">0</div>
+            <button class="qty-btn inc-btn" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--border-input); background:var(--bg-card); cursor:pointer;">+</button>
+          </div>
+        `;
+        
+        const decrementBtn = itemRow.querySelector('.dec-btn');
+        const incrementBtn = itemRow.querySelector('.inc-btn');
+        const display = itemRow.querySelector('.qty-display');
+        
+        const updateUI = () => {
+          const sum = getSumSelected();
+          const confirmBtn = document.getElementById('btnConfirmComboResolver');
+          if (confirmBtn) {
+            confirmBtn.textContent = `Confirm Selection (${sum}/${step.requiredQty})`;
+            confirmBtn.disabled = (sum !== step.requiredQty);
+          }
+        };
+        
+        decrementBtn.onclick = () => {
+          if (selectionMap[child.index] > 0) {
+            selectionMap[child.index]--;
+            display.textContent = selectionMap[child.index];
+            updateUI();
+          }
+        };
+        
+        incrementBtn.onclick = () => {
+          const sum = getSumSelected();
+          if (sum < step.requiredQty) {
+            selectionMap[child.index]++;
+            display.textContent = selectionMap[child.index];
+            updateUI();
+          } else {
+            toast('Maximum quantity reached', 'warning');
+          }
+        };
+        
+        wrapper.appendChild(itemRow);
+        container.appendChild(wrapper);
+      }
     });
   }
   
+  renderAccordionTree(grid, node.index, 0);
   openModal('modalComboResolver');
-}
-
-function resolveComboOption(selectedNodeIndex) {
-  const child = POS_STATE.menuTree.find(n => Number(n.index) === Number(selectedNodeIndex));
-  if (!child) return;
-  
-  const step = comboResolutionQueue[0];
-  const isChildParent = POS_STATE.menuTree.some(n => Number(n.parentIndex) === Number(child.index));
-  
-  if (!isChildParent) {
-    // Leaf node: we resolve this combo item!
-    comboResolvedDishes.push(child);
-    step.requiredQty--;
-    if (step.requiredQty <= 0) {
-      comboResolutionQueue.shift();
-    }
-  } else {
-    // Parent node: drill down immediately for 1 item!
-    // Push the child category to the front of the queue with requiredQty 1
-    comboResolutionQueue.unshift({ nodeIndex: child.index, requiredQty: 1 });
-    // Decrement the current parent category step's requiredQty
-    step.requiredQty--;
-    if (step.requiredQty <= 0) {
-      // Remove the original parent category step since its requiredQty is fully distributed/replaced
-      comboResolutionQueue.splice(1, 1);
-    }
-  }
-  
-  processNextComboItem();
 }
 
 function cancelComboResolution() {
