@@ -1152,13 +1152,13 @@ a { color: var(--brand-primary); text-decoration: none; }
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 20px;
-  padding: 0.5rem 0.5rem;
+  padding: 0.25rem 0.25rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 115px;
+  min-height: 90px;
   box-shadow: var(--shadow-card);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -1215,7 +1215,7 @@ a { color: var(--brand-primary); text-decoration: none; }
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .pos-dish-info:hover .pos-dish-name {
@@ -1225,16 +1225,16 @@ a { color: var(--brand-primary); text-decoration: none; }
 
 .pos-dish-name {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-primary);
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
   word-wrap: break-word;
 }
 
 .pos-dish-price {
   font-weight: 600;
   color: var(--brand-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   font-size: 1rem;
 }
 
@@ -2098,7 +2098,7 @@ body.split-active .split-divider {
   box-shadow: 0 6px 24px rgba(0,0,0,0.1);
 }
 .kpi-card--hero {
-  background: linear-gradient(135deg, #e85d04 0%, #faa307 100%);
+  background: var(--brand-gradient);
   color: white;
   grid-column: span 2;
   --sparkline-line: #ffffff;
@@ -2145,7 +2145,7 @@ body.split-active .split-divider {
 
 /* Today hero sidebar card */
 .today-hero-card {
-  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(232,93,4,0.06) 100%);
+  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(var(--brand-primary-rgb), 0.06) 100%);
 }
 .today-delta {
   font-size: 13px;
